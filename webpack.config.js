@@ -27,7 +27,8 @@ module.exports = merge({
   externals: {
     "redux": "redix",
     "redux-typed": "redux-typed",
-    "lodash": "lodash"
+    "lodash": "lodash",
+    "sp-pnp-js": "sp-pnp-js"
   }
 
   /*plugins: [

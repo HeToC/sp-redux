@@ -1,4 +1,5 @@
 export enum AsyncActionType { 
     Request,
-    Response    
+    Response,
+    Error
 };

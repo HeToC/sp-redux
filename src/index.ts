@@ -8,7 +8,7 @@ export { AsyncActionType } from './asyncActionType';
 export { UserAction } from './modules/user';
 
 
-export const reducerSpRedux: Reducer<any> = (state, action) => {
+export const reducer: Reducer<any> = (state, action) => {
     if (isActionType(action, User.UserAction)) {
         return assign({}, state, {
             'sp-redux': {

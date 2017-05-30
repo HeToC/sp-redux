@@ -1,6 +1,6 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp1",
+  "version": "0.0.1-tmp2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "webpack": "^2.6.1",
     "@types/react": "^15.0.25",
     "@types/redux": "^3.6.0",
-    "@types/react-redux": "^4.4.40"
+    "@types/react-redux": "^4.4.40",
+    "sp-pnp-js":"^2.0.5"
   }
 }
