@@ -1,6 +1,6 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp8",
+  "version": "0.0.1-tmp9",
   "typings":"./lib/sp-redux",
   "description": "",
   "main": "./lib/sp-redux.js",

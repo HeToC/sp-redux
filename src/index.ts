@@ -6,21 +6,16 @@ import * as User from './modules/user';
 export { AsyncActionType } from './asyncActionType';
 export { UserAction } from './modules/user';
 
-export const reducer: Reducer<any> = (state, action) => {
+export const SPRedux = (reducer) => (state, action) => {
+    var newState = assign({}, state);
+
     if (isActionType(action, User.UserAction)) {
-        return assign({}, state, {
+        newState = assign(newState, {
             'sp-redux': {
                 ...state['sp-redux'],
                 users: User.reducerUsers(state['sp-redux'].users, action)
             }
         });
-    } else {
-        return state || {
-            'sp-redux': {
-                users: {
-
-                }
-            }
-        };
     }
+    return reducer(newState, action);
 };
