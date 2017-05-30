@@ -1,4 +1,3 @@
-import { ActionCreatorsMapObject } from 'redux';
 import { typeName, isActionType, Action, Reducer, ActionCreatorGeneric} from 'redux-typed';
 import { assign } from 'lodash';
 import { sp as SP } from 'sp-pnp-js';

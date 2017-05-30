@@ -25,7 +25,7 @@ module.exports = merge({
     path: path.join(__dirname,'./lib'),
   },
   externals: {
-    "redux": "redix",
+    /*"redux": "redix",*/
     "redux-typed": "redux-typed",
     "lodash": "lodash",
     "sp-pnp-js": "sp-pnp-js"

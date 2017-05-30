@@ -1,6 +1,6 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp4",
+  "version": "0.0.1-tmp5",
   "typings":"./lib/sp-redux",
   "description": "",
   "main": "./lib/sp-redux.js",
@@ -23,8 +23,6 @@
     "extendify": "^1.0.0",
     "path": "^0.12.7",
     "react": "^15.5.4",
-    "redux": "^3.6.0",
-    "react-redux": "^5.0.5",
     "redux-typed": "^2.0.0",
     "webpack": "^2.6.1",
     "@types/react": "^15.0.25",

@@ -1,4 +1,4 @@
-import { typeName, isActionType, Action, Reducer, ActionCreatorGeneric } from 'redux-typed';
+import { isActionType, Reducer } from 'redux-typed';
 import { assign } from 'lodash';
 
 import * as User from './modules/user';
