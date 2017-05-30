@@ -23,6 +23,7 @@ module.exports = merge({
   output: {
     filename: 'sp-redux.js', /*'[name].js',*/
     path: path.join(__dirname,'./lib'),
+    libraryTarget: "umd"
   },
   externals: {
     /*"redux": "redix",*/

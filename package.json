@@ -1,6 +1,6 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp5",
+  "version": "0.0.1-tmp6",
   "typings":"./lib/sp-redux",
   "description": "",
   "main": "./lib/sp-redux.js",
@@ -17,17 +17,19 @@
     "url": "https://github.com/HeToC/sp-redux/issues"
   },
   "homepage": "https://github.com/HeToC/sp-redux#readme",
+  "dependencies": {
+    "react": "^15.5.4",
+    "redux-typed": "^2.0.0",
+    "webpack": "^2.6.1",
+    "sp-pnp-js":"^2.0.5"
+  },
   "devDependencies": {
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
     "extendify": "^1.0.0",
     "path": "^0.12.7",
-    "react": "^15.5.4",
-    "redux-typed": "^2.0.0",
-    "webpack": "^2.6.1",
     "@types/react": "^15.0.25",
     "@types/redux": "^3.6.0",
-    "@types/react-redux": "^4.4.40",
-    "sp-pnp-js":"^2.0.5"
+    "@types/react-redux": "^4.4.40"
   }
 }

@@ -3,10 +3,8 @@ import { assign } from 'lodash';
 
 import * as User from './modules/user';
 
-
 export { AsyncActionType } from './asyncActionType';
 export { UserAction } from './modules/user';
-
 
 export const reducer: Reducer<any> = (state, action) => {
     if (isActionType(action, User.UserAction)) {
