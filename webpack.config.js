@@ -23,10 +23,10 @@ module.exports = merge({
   output: {
     filename: 'sp-redux.js', /*'[name].js',*/
     path: path.join(__dirname,'./lib'),
-    libraryTarget: "umd"
+    libraryTarget: "umd",
+    umdNamedDefine: true
   },
   externals: {
-    /*"redux": "redix",*/
     "redux-typed": "redux-typed",
     "lodash": "lodash",
     "sp-pnp-js": "sp-pnp-js"
