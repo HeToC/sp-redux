@@ -1,8 +1,12 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp2",
+  "version": "0.0.1-tmp3",
+  "typings":"./lib/sp-redux",
+  "files": [
+    "./lib/"
+  ],
   "description": "",
-  "main": "index.js",
+  "main": "./lib/sp-redux.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
