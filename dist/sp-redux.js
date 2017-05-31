@@ -103,40 +103,49 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (immutable) */ __webpack_exports__["registerModule"] = registerModule;
+/* harmony export (immutable) */ __webpack_exports__["mutateInitialState"] = mutateInitialState;
+/* harmony export (immutable) */ __webpack_exports__["mutateActionCreator"] = mutateActionCreator;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_lodash__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__sppnpshim__ = __webpack_require__(0);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "initializeDev", function() { return __WEBPACK_IMPORTED_MODULE_1__sppnpshim__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__modules_user__ = __webpack_require__(4);
 
 
 
-class CSPRedux {
-    constructor() {
-        this.initializeDev = __WEBPACK_IMPORTED_MODULE_1__sppnpshim__["a" /* initializeDev */];
-        this.userActions = __WEBPACK_IMPORTED_MODULE_2__modules_user__["a" /* actionsUser */];
-    }
-
-    mutateInitialState(initialState) {
-        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_lodash__["assign"])({}, initialState, __WEBPACK_IMPORTED_MODULE_2__modules_user__["b" /* initialState */]);
-    }
-
-    /*
-    interface IMutatorReducer {
-        (reducer: Reducer<any>): (state: any, action: Action) => any;
-    }
-    */
-    mutateReducer(reducer) {
-        return (state, action) => {
-            if (__WEBPACK_IMPORTED_MODULE_2__modules_user__["c" /* checkActionType */](action)) {
-                return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_lodash__["assign"])({}, __WEBPACK_IMPORTED_MODULE_2__modules_user__["d" /* reducerUsers */](state, action));
-            }
-            return reducer(state, action);
-        };
-    }
+let bInitialized = false;
+const registeredModules = [new __WEBPACK_IMPORTED_MODULE_2__modules_user__["a" /* SPRUser */]()];
+function registerModule(module) {
+    registeredModules.push(module);
+    if (!bInitialized) bInitialized = true;
 }
-const SPRedux = new CSPRedux();
-/* harmony export (immutable) */ __webpack_exports__["SPRedux"] = SPRedux;
+function mutateInitialState(initialState) {
+    var initialStates = registeredModules.map(m => {
+        return m.getInitialState();
+    });
+    return __WEBPACK_IMPORTED_MODULE_0_lodash__["assign"].apply({}, [initialState, ...initialStates]);
+}
+;
+const mutateReducer = reducer => (state, action) => {
+    for (var i = 0; i < registeredModules.length; i++) {
+        var m = registeredModules[i];
+        if (m.checkActionType(action)) return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_lodash__["assign"])({}, state, m.getReducer(state, action));
+    }
+    return reducer(state, action);
+};
+/* harmony export (immutable) */ __webpack_exports__["mutateReducer"] = mutateReducer;
 
+function mutateActionCreator(wrappedActionCreator) {
+    var actions = {};
+    actions = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_lodash__["assign"])({}, wrappedActionCreator);
+    registeredModules.forEach(m => {
+        var moduleActions = m.getActions();
+        actions = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_lodash__["assign"])({}, actions, moduleActions);
+    });
+    return actions;
+}
+;
 
 /***/ }),
 /* 3 */
@@ -158,7 +167,6 @@ var AsyncActionType;
 
 "use strict";
 /* unused harmony export UserAction */
-/* harmony export (immutable) */ __webpack_exports__["c"] = checkActionType;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_typed__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_typed___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_redux_typed__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(1);
@@ -187,41 +195,76 @@ let UserAction = class UserAction extends __WEBPACK_IMPORTED_MODULE_0_redux_type
 UserAction = __decorate([__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["typeName"])("@@SP-REDUX/USER")], UserAction);
 
 ;
-function checkActionType(action) {
-    return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction);
-}
-const actionsUser = {
-    fetchUser: accountName => (dispatch, getState) => {
-        let state = getState();
-        let user = state.entities.users[accountName];
-        if (user == null || user == undefined || !(user.isLoaded && user.isFetching)) {
-            dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request));
-            __WEBPACK_IMPORTED_MODULE_3__sppnpshim__["b" /* UserProfileManager */].getPropertiesFor(accountName).then(profile => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response, profile))).catch(reason => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Error, reason)));
-        }
-    },
-    fetchUsers: accountNames => (dispatch, getState) => {
-        accountNames.forEach(accountName => {
-            actionsUser.fetchUser(accountName);
+class SPRUser {
+    constructor() {
+        this.actions = {
+            fetchUser: accountName => (dispatch, getState) => {
+                let state = getState();
+                let user = state.entities.users[accountName];
+                if (user && (user.isLoaded || user.isFetching)) return;
+                dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request));
+                __WEBPACK_IMPORTED_MODULE_3__sppnpshim__["b" /* UserProfileManager */].getPropertiesFor(accountName).then(profile => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response, profile))).catch(reason => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Error, reason)));
+            },
+            fetchUsers: accountNames => (dispatch, getState) => {
+                throw "NYE";
+            }
+        };
+    }
+    checkActionType(action) {
+        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction);
+    }
+
+    getActions() {
+        return this.actions;
+    }
+
+    getInitialState() {
+        return {
+            entities: {
+                users: []
+            }
+        };
+    }
+
+    getReducer(state, action) {
+        const isFetching = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request;
+        const isLoaded = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response;
+        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
+            entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, this.mapPayloadToEntity(action.payload), { isFetching: isFetching, isLoaded: isLoaded }) }) })
         });
     }
-};
-/* harmony export (immutable) */ __webpack_exports__["a"] = actionsUser;
-
-const initialState = {
-    entities: {
-        users: []
+    mapPayloadToEntity(payload) {
+        if (payload == undefined || payload == null) {
+            return {};
+        }
+        var upp = payload && payload.UserProfileProperties && __WEBPACK_IMPORTED_MODULE_1_lodash__["assign"].apply({}, payload.UserProfileProperties.results.map(function (kvp) {
+            return { [kvp.Key]: kvp.Value };
+        }));
+        var extendedManagers = payload && payload.ExtendedManagers && payload.ExtendedManagers.results.map(s => s.toLowerCase());
+        var peers = payload && payload.Peers && payload.Peers.results.map(s => s.toLowerCase());
+        var userProps = {
+            accountName: upp.AccountName.toLowerCase(),
+            pictureUrl: upp.PictureURL.toLowerCase(),
+            firstName: upp.FirstName,
+            lastName: upp.LastName,
+            workEmail: upp.WorkEmail.toLowerCase(),
+            workPhone: upp.WorkPhone.toLowerCase(),
+            cellPhone: upp.CellPhone.toLowerCase(),
+            jobTitle: upp["SPS-JobTitle"].toLowerCase(),
+            department: upp["SPS-Department"].toLowerCase(),
+            division: upp.Division.toLowerCase(),
+            office: upp.Office,
+            hashTags: upp["SPS-HashTags"].toLowerCase().split('|'),
+            interests: upp["SPS-Interests"].toLowerCase(),
+            birthday: new Date(upp["SPS-Birthday"]),
+            manager: upp.Manager.toLowerCase(),
+            extendedManagers: extendedManagers,
+            peers: peers
+        };
+        return userProps;
     }
-};
-/* harmony export (immutable) */ __webpack_exports__["b"] = initialState;
-
-const reducerUsers = (state, action) => {
-    const isFetching = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request;
-    const isLoaded = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response;
-    return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
-        entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, action.payload, { isFetching: isFetching, isLoaded: isLoaded }) }) })
-    });
-};
-/* harmony export (immutable) */ __webpack_exports__["d"] = reducerUsers;
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = SPRUser;
 
 
 /***/ }),

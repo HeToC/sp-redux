@@ -1,9 +1,9 @@
 {
   "name": "sp-redux",
-  "version": "0.0.1-tmp9",
-  "typings":"./lib/sp-redux",
+  "version": "0.0.3-2i",
+  "typings":"./src/sp-redux.d.ts",
   "description": "",
-  "main": "./lib/sp-redux.js",
+  "main": "./dist/sp-redux.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
