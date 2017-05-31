@@ -1,6 +1,6 @@
 {
   "name": "sp-redux",
-  "version": "0.0.3-2i",
+  "version": "0.1.0",
   "typings":"./src/sp-redux.d.ts",
   "description": "",
   "main": "./dist/sp-redux.js",
