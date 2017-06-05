@@ -227,11 +227,14 @@ class SPRUser {
     }
 
     getReducer(state, action) {
-        const isFetching = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request;
-        const isLoaded = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response;
-        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
-            entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, this.mapPayloadToEntity(action.payload), { isFetching: isFetching, isLoaded: isLoaded }) }) })
-        });
+        if (__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction)) {
+            const isFetching = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request;
+            const isLoaded = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response;
+            return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
+                entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, this.mapPayloadToEntity(action.payload), { isFetching: isFetching, isLoaded: isLoaded }) }) })
+            });
+        }
+        return state;
     }
     mapPayloadToEntity(payload) {
         if (payload == undefined || payload == null) {
