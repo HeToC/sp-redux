@@ -14,11 +14,35 @@ export class UserAction extends Action {
     }
 };
 
+@typeName("@@SP-REDUX/USERS")
+export class BulkUserAction extends Action {
+    constructor(public accountNames: string[]) {
+        super();
+    }
+};
+
+@typeName("@@SP-REDUX/USER#CURRENT")
+export class CurrentUserAction extends Action {
+    constructor(public asyncOp: AsyncActionType, public payload?: any) {
+        super();
+    }
+};
 
 export class SPRUser implements ISPRModule {
     actions: any;
     constructor() {
         this.actions = {
+            fetchCurrentUser: (): ActionCreatorGeneric<any> => (dispatch, getState) => {
+                let state = getState();
+                if (state.entities.users.currentUser)
+                    return;
+                
+                dispatch(new CurrentUserAction(AsyncActionType.Request));
+                UserProfileManager.myProperties.get()
+                    .then(profile => dispatch(new CurrentUserAction(AsyncActionType.Response, profile)))
+                    .catch(reason => dispatch(new CurrentUserAction(AsyncActionType.Error, reason)));
+
+            },
             fetchUser: (accountName: string): ActionCreatorGeneric<any> => (dispatch, getState) => {
                 let state = getState();
                 let user = state.entities.users[accountName];
@@ -33,14 +57,20 @@ export class SPRUser implements ISPRModule {
                     .catch(reason => dispatch(new UserAction(accountName, AsyncActionType.Error, reason)));
             },
             fetchUsers: (accountNames: string[]): ActionCreatorGeneric<any> => (dispatch, getState) => {
-                throw "NYE";
+                let state = getState();
+                accountNames.forEach(an => {
+                    let user = state.entities.users[an];
+
+                    if (user && (user.isLoaded || user.isFetching))
+                        return;
+                    
+                    UserProfileManager.getPropertiesFor(an)
+                        .then(profile => dispatch(new UserAction(an, AsyncActionType.Response, profile)))
+                        .catch(reason => dispatch(new UserAction(an, AsyncActionType.Error, reason)));
+                });
             }
         };
     }
-
-    public checkActionType(action) {
-        return isActionType(action, UserAction);
-    };
 
     public getActions() {
         return this.actions;
@@ -49,15 +79,43 @@ export class SPRUser implements ISPRModule {
     public getInitialState() {
         return {
             entities: {
-                users: []
+                users: { 
+                    currentUser: undefined
+                }
             }
         };
     };
 
-    public getReducer(state: any, action: UserAction): any {
+    public checkActionType(action) {
+        return isActionType(action, UserAction)
+            || isActionType(action, CurrentUserAction)
+            || isActionType(action, BulkUserAction);
+    };
+
+    public getReducer(state: any, action: Action): any {
+        if (isActionType(action, CurrentUserAction)) {
+            const isFetching = action.asyncOp == AsyncActionType.Request;
+            const isLoaded = action.asyncOp == AsyncActionType.Response;
+            const entity = action.asyncOp == AsyncActionType.Response ? this.mapPayloadToEntity(action.payload) : action.payload;
+
+            return assign({}, state, {
+                entities: {
+                    ...state.entities,
+                    users: {
+                        ...state.entities.users,
+                        currentUser: action.payload.AccountName,
+                        [action.payload.AccountName]: {
+                            ...entity,
+                        }
+                    }
+                }
+            });
+        }
+        
         if (isActionType(action, UserAction)) {
             const isFetching = action.asyncOp == AsyncActionType.Request;
             const isLoaded = action.asyncOp == AsyncActionType.Response;
+            const entity = action.asyncOp == AsyncActionType.Response ? this.mapPayloadToEntity(action.payload) : action.payload;
 
             return assign({}, state, {
                 entities: {
@@ -65,10 +123,33 @@ export class SPRUser implements ISPRModule {
                     users: {
                         ...state.entities.users,
                         [action.accountName]: {
-                            ...this.mapPayloadToEntity(action.payload),
+                            ...entity,
                             isFetching: isFetching,
                             isLoaded: isLoaded,
                         }
+                    }
+                }
+            });
+        }
+
+        if (isActionType(action, BulkUserAction)) { 
+            const states = action.accountNames.map((an) => {
+                return {
+                    [an]: {
+                        isFetching: true,
+                        isLoaded: false,
+                    }
+                }
+            });
+
+            const a2o = assign.apply({}, states);
+
+            return assign({}, state, {
+                entities: {
+                    ...state.entities,
+                    users: {
+                        ...state.entities.users,
+                        ...a2o
                     }
                 }
             });
