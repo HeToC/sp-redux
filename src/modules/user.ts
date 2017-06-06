@@ -37,11 +37,9 @@ export class SPRUser implements ISPRModule {
                 if (state.entities.users.currentUser)
                     return;
                 
-                dispatch(new CurrentUserAction(AsyncActionType.Request));
                 UserProfileManager.myProperties.get()
                     .then(profile => dispatch(new CurrentUserAction(AsyncActionType.Response, profile)))
                     .catch(reason => dispatch(new CurrentUserAction(AsyncActionType.Error, reason)));
-
             },
             fetchUser: (accountName: string): ActionCreatorGeneric<any> => (dispatch, getState) => {
                 let state = getState();
@@ -94,18 +92,19 @@ export class SPRUser implements ISPRModule {
 
     public getReducer(state: any, action: Action): any {
         if (isActionType(action, CurrentUserAction)) {
-            const isFetching = action.asyncOp == AsyncActionType.Request;
-            const isLoaded = action.asyncOp == AsyncActionType.Response;
             const entity = action.asyncOp == AsyncActionType.Response ? this.mapPayloadToEntity(action.payload) : action.payload;
 
+            const accountName = (action.payload ? action.payload.AccountName : "").toLowerCase();
             return assign({}, state, {
                 entities: {
                     ...state.entities,
                     users: {
                         ...state.entities.users,
-                        currentUser: action.payload.AccountName,
-                        [action.payload.AccountName]: {
+                        currentUser: accountName,
+                        [accountName]: {
                             ...entity,
+                            isFetching: false,
+                            isLoaded: true
                         }
                     }
                 }

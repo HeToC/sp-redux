@@ -7,16 +7,27 @@ export declare class UserAction extends Action {
     payload: any;
     constructor(accountName: string, asyncOp: AsyncActionType, payload?: any);
 }
+export declare class BulkUserAction extends Action {
+    accountNames: string[];
+    constructor(accountNames: string[]);
+}
+export declare class CurrentUserAction extends Action {
+    asyncOp: AsyncActionType;
+    payload: any;
+    constructor(asyncOp: AsyncActionType, payload?: any);
+}
 export declare class SPRUser implements ISPRModule {
     actions: any;
     constructor();
-    checkActionType(action: any): boolean;
     getActions(): any;
     getInitialState(): {
         entities: {
-            users: any[];
+            users: {
+                currentUser: any;
+            };
         };
     };
-    getReducer(state: any, action: UserAction): any;
+    checkActionType(action: any): boolean;
+    getReducer(state: any, action: Action): any;
     mapPayloadToEntity(payload: any): any;
 }

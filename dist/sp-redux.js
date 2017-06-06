@@ -167,6 +167,8 @@ var AsyncActionType;
 
 "use strict";
 /* unused harmony export UserAction */
+/* unused harmony export BulkUserAction */
+/* unused harmony export CurrentUserAction */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_typed__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_typed___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_redux_typed__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(1);
@@ -195,9 +197,33 @@ let UserAction = class UserAction extends __WEBPACK_IMPORTED_MODULE_0_redux_type
 UserAction = __decorate([__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["typeName"])("@@SP-REDUX/USER")], UserAction);
 
 ;
+let BulkUserAction = class BulkUserAction extends __WEBPACK_IMPORTED_MODULE_0_redux_typed__["Action"] {
+    constructor(accountNames) {
+        super();
+        this.accountNames = accountNames;
+    }
+};
+BulkUserAction = __decorate([__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["typeName"])("@@SP-REDUX/USERS")], BulkUserAction);
+
+;
+let CurrentUserAction = class CurrentUserAction extends __WEBPACK_IMPORTED_MODULE_0_redux_typed__["Action"] {
+    constructor(asyncOp, payload) {
+        super();
+        this.asyncOp = asyncOp;
+        this.payload = payload;
+    }
+};
+CurrentUserAction = __decorate([__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["typeName"])("@@SP-REDUX/USER#CURRENT")], CurrentUserAction);
+
+;
 class SPRUser {
     constructor() {
         this.actions = {
+            fetchCurrentUser: () => (dispatch, getState) => {
+                let state = getState();
+                if (state.entities.users.currentUser) return;
+                __WEBPACK_IMPORTED_MODULE_3__sppnpshim__["b" /* UserProfileManager */].myProperties.get().then(profile => dispatch(new CurrentUserAction(__WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response, profile))).catch(reason => dispatch(new CurrentUserAction(__WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Error, reason)));
+            },
             fetchUser: accountName => (dispatch, getState) => {
                 let state = getState();
                 let user = state.entities.users[accountName];
@@ -206,14 +232,15 @@ class SPRUser {
                 __WEBPACK_IMPORTED_MODULE_3__sppnpshim__["b" /* UserProfileManager */].getPropertiesFor(accountName).then(profile => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response, profile))).catch(reason => dispatch(new UserAction(accountName, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Error, reason)));
             },
             fetchUsers: accountNames => (dispatch, getState) => {
-                throw "NYE";
+                let state = getState();
+                accountNames.forEach(an => {
+                    let user = state.entities.users[an];
+                    if (user && (user.isLoaded || user.isFetching)) return;
+                    __WEBPACK_IMPORTED_MODULE_3__sppnpshim__["b" /* UserProfileManager */].getPropertiesFor(an).then(profile => dispatch(new UserAction(an, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response, profile))).catch(reason => dispatch(new UserAction(an, __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Error, reason)));
+                });
             }
         };
     }
-    checkActionType(action) {
-        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction);
-    }
-
     getActions() {
         return this.actions;
     }
@@ -221,17 +248,45 @@ class SPRUser {
     getInitialState() {
         return {
             entities: {
-                users: []
+                users: {
+                    currentUser: undefined
+                }
             }
         };
     }
 
+    checkActionType(action) {
+        return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction) || __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, CurrentUserAction) || __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, BulkUserAction);
+    }
+
     getReducer(state, action) {
+        if (__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, CurrentUserAction)) {
+            const entity = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response ? this.mapPayloadToEntity(action.payload) : action.payload;
+            const accountName = action.payload && action.payload.AccountName;
+            return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
+                entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { currentUser: accountName, [accountName]: Object.assign({}, entity, { isFetching: false, isLoaded: true }) }) })
+            });
+        }
         if (__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, UserAction)) {
             const isFetching = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Request;
             const isLoaded = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response;
+            const entity = action.asyncOp == __WEBPACK_IMPORTED_MODULE_2__asyncActionType__["a" /* AsyncActionType */].Response ? this.mapPayloadToEntity(action.payload) : action.payload;
             return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
-                entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, this.mapPayloadToEntity(action.payload), { isFetching: isFetching, isLoaded: isLoaded }) }) })
+                entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, { [action.accountName]: Object.assign({}, entity, { isFetching: isFetching, isLoaded: isLoaded }) }) })
+            });
+        }
+        if (__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux_typed__["isActionType"])(action, BulkUserAction)) {
+            const states = action.accountNames.map(an => {
+                return {
+                    [an]: {
+                        isFetching: true,
+                        isLoaded: false
+                    }
+                };
+            });
+            const a2o = __WEBPACK_IMPORTED_MODULE_1_lodash__["assign"].apply({}, states);
+            return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_lodash__["assign"])({}, state, {
+                entities: Object.assign({}, state.entities, { users: Object.assign({}, state.entities.users, a2o) })
             });
         }
         return state;
